@@ -1,22 +1,91 @@
 const express = require('express');
-const cors = require('cors');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
+const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
-const habitRoutes = require('./routes/habitRoutes');
-
-dotenv.config();
-connectDB();
-
 const app = express();
-app.use(bodyParser.json());
+require('dotenv').config();
+
+// Middleware
 app.use(cors());
+app.use(express.json());
 app.use('/api/auth', authRoutes);
-app.use('/api/habits', habitRoutes);
+
+// MongoDB connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/habit_tracker', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        console.log('Register request received:', req.body);
+        // For testing, just send back the received data
+        res.json({ 
+            message: 'Registration successful', 
+            user: req.body 
+        });
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+// Habit Schema
+const habitSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    frequency: { type: String, required: true },
+    timeOfDay: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Habit = mongoose.model('Habit', habitSchema);
+
+// Test route
+app.get('/test', (req, res) => {
+    res.json({ message: 'Server is running!' });
+});
+
+// GET habits
+app.get('/api/habits', async (req, res) => {
+    try {
+        const habits = await Habit.find().sort({ createdAt: -1 });
+        console.log('Fetched habits:', habits);
+        res.json(habits);
+    } catch (error) {
+        console.error('Error fetching habits:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST new habit
+app.post('/api/habits', async (req, res) => {
+    try {
+        console.log('Received POST request with data:', req.body);
+        
+        const { name, frequency, timeOfDay } = req.body;
+        if (!name || !frequency || !timeOfDay) {
+            return res.status(400).json({ 
+                error: 'Missing required fields' 
+            });
+        }
+
+        const habit = new Habit({
+            name,
+            frequency,
+            timeOfDay
+        });
+
+        const savedHabit = await habit.save();
+        console.log('Saved habit:', savedHabit);
+        
+        res.status(201).json(savedHabit);
+    } catch (error) {
+        console.error('Error saving habit:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });
