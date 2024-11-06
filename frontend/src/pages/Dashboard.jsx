@@ -12,6 +12,7 @@ import { Add as AddIcon } from '@mui/icons-material';
 import { habitService } from '../api/services';
 import HabitCard from '../components/HabitCard';
 // import CreateHabitDialog from '../components/CreateHabitDialog';
+import CreateHabitDialog from "../components/habits/HabitCreateDialog"
 
 const Dashboard = () => {
   const [habits, setHabits] = useState([]);
@@ -85,11 +86,11 @@ const Dashboard = () => {
         ))}
       </Grid>
 
-      {/* <CreateHabitDialog
+      <CreateHabitDialog
         open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onSubmit={handleHabitCreate}
-      /> */}
+      />
     </Container>
   );
 };
