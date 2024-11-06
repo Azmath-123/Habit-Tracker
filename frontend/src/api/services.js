@@ -29,7 +29,10 @@ export const authService = {
 export const habitService = {
   getAllHabits: () => api.get('/habits'),
   getHabitById: (id) => api.get(`/habits/${id}`),
-  createHabit: (habitData) => api.post('/habits', habitData),
+  createHabit: (habitData) =>{
+    console.log(habitData)
+    api.post('/habits', habitData)
+  } ,
   updateHabit: (id, habitData) => api.put(`/habits/${id}`, habitData),
   deleteHabit: (id) => api.delete(`/habits/${id}`),
   updateProgress: (id, progressData) => api.post(`/habits/${id}/progress`, progressData),
